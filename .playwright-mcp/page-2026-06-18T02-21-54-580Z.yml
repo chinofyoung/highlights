@@ -1,0 +1,34 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - heading "Pickleball.highlights" [level=1] [ref=e5]
+    - button "Toggle theme" [ref=e6]:
+      - img [ref=e7]
+  - main [ref=e9]:
+    - generic [ref=e45]:
+      - generic [ref=e46]:
+        - button "← Back" [ref=e47]
+        - button "Re-edit" [ref=e48]
+      - generic [ref=e49]:
+        - generic [ref=e50]:
+          - heading "Highlights" [level=2] [ref=e51]
+          - button "Clear all" [ref=e52]
+        - paragraph [ref=e54]: Combined reel
+        - generic [ref=e56]:
+          - paragraph [ref=e57]: Clips (4)
+          - generic [ref=e58]:
+            - generic [ref=e61]:
+              - generic [ref=e62]: clip_001.mp4
+              - button "Delete clip_001.mp4" [ref=e63]:
+                - img [ref=e64]
+            - generic [ref=e69]:
+              - generic [ref=e70]: clip_002.mp4
+              - button "Delete clip_002.mp4" [ref=e71]:
+                - img [ref=e72]
+            - generic [ref=e77]:
+              - generic [ref=e78]: clip_003.mp4
+              - button "Delete clip_003.mp4" [ref=e79]:
+                - img [ref=e80]
+            - generic [ref=e85]:
+              - generic [ref=e86]: clip_004.mp4
+              - button "Delete clip_004.mp4" [ref=e87]:
+                - img [ref=e88]

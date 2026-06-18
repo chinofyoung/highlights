@@ -1,0 +1,17 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - heading "Pickleball.highlights" [level=1] [ref=e5]
+    - button "Toggle theme" [ref=e6]:
+      - img [ref=e7]
+  - main [ref=e9]:
+    - generic [ref=e11]:
+      - generic [ref=e12]:
+        - heading "Find the rallies. Skip the standing around." [level=2] [ref=e13]:
+          - text: Find the rallies.
+          - text: Skip the standing around.
+        - paragraph [ref=e14]: Drop in a match recorded from one fixed angle. We'll spot every rally so you can cut a highlight reel in minutes.
+      - generic [ref=e15] [cursor=pointer]:
+        - img [ref=e16]
+        - generic [ref=e19]: Drop a match video or click to choose
+        - generic [ref=e20]: MP4, MOV, or any format your browser supports
+        - button "Drop a match video or click to choose MP4, MOV, or any format your browser supports" [ref=e21]

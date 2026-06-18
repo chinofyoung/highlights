@@ -27,6 +27,18 @@ def make_video_id(original_filename: str) -> str:
     return f"{_slugify(original_filename)}_{uuid.uuid4().hex[:6]}"
 
 
+def unique_video_id(name: str, current: str | None = None) -> str:
+    """A sanitized, collision-free folder id derived from a display name.
+    Returns `current` unchanged if the sanitized base already equals it."""
+    base = _slugify(name)
+    candidate = base
+    i = 2
+    while candidate != current and (WORKDIR / candidate).exists():
+        candidate = f"{base}_{i}"
+        i += 1
+    return candidate
+
+
 def video_dir(video_id: str) -> Path:
     d = WORKDIR / video_id
     d.mkdir(parents=True, exist_ok=True)

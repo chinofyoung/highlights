@@ -58,7 +58,7 @@ export function LibrarySection({ onOpen }: LibrarySectionProps) {
       const r = await renameProject(videoId, trimmed);
       setProjects((prev) =>
         prev.map((p) =>
-          p.video_id === videoId ? { ...p, original_filename: r.original_filename } : p,
+          p.video_id === videoId ? { ...p, video_id: r.video_id, original_filename: r.original_filename } : p,
         ),
       );
     } finally {

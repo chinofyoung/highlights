@@ -38,12 +38,13 @@ def test_rename_reflects_in_drafts(tmp_path, monkeypatch):
 
     from app.main import app
     client = TestClient(app)
-    client.patch("/api/projects/vid_abc/name", json={"name": "My Final Cut"})
+    r_rename = client.patch("/api/projects/vid_abc/name", json={"name": "My Final Cut"})
+    new_id = r_rename.json()["video_id"]  # folder moved to sanitized name
 
     r = client.get("/api/drafts")
     assert r.status_code == 200
     data = r.json()
-    item = next((d for d in data if d["video_id"] == "vid_abc"), None)
+    item = next((d for d in data if d["video_id"] == new_id), None)
     assert item is not None
     assert item["original_filename"] == "My Final Cut"
 
@@ -111,9 +112,59 @@ def test_rename_no_existing_meta(tmp_path, monkeypatch):
     data = r.json()
     assert data["original_filename"] == "No Meta Name"
 
-    # meta.json was written under uploads/
-    meta_path = d / "uploads" / "meta.json"
+    # folder was moved to the sanitized name — use the returned video_id
+    new_id = data["video_id"]
+    meta_path = tmp_path / new_id / "uploads" / "meta.json"
     assert meta_path.exists()
     meta = json.loads(meta_path.read_text())
     assert meta["original_filename"] == "No Meta Name"
     assert isinstance(meta["uploaded_at"], float)
+
+
+def test_rename_moves_folder_and_rekeys_state(tmp_path, monkeypatch):
+    from app import workdir
+    from app.api import state
+    monkeypatch.setattr(workdir, "WORKDIR", tmp_path)
+    _make_draft(tmp_path, "game_abc123")
+    state.put("game_abc123", {"path": str(tmp_path / "game_abc123" / "uploads" / "source.mp4"),
+                              "duration": 1.0})
+    from app.main import app
+    client = TestClient(app)
+
+    r = client.patch("/api/projects/game_abc123/name", json={"name": "My Match"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["video_id"] == "My_Match"
+    assert body["original_filename"] == "My Match"
+    assert (tmp_path / "My_Match" / "uploads" / "source.mp4").exists()
+    assert not (tmp_path / "game_abc123").exists()
+    # state re-keyed: old gone, new present with path inside the moved folder
+    assert state.get("game_abc123") is None
+    assert state.get("My_Match") is not None
+    assert "My_Match" in state.get("My_Match")["path"]
+
+
+def test_rename_collision_appends_suffix(tmp_path, monkeypatch):
+    from app import workdir
+    monkeypatch.setattr(workdir, "WORKDIR", tmp_path)
+    _make_draft(tmp_path, "existing_one")
+    # pre-create a folder that the sanitized target would collide with
+    (tmp_path / "My_Match").mkdir(parents=True, exist_ok=True)
+    from app.main import app
+    client = TestClient(app)
+    r = client.patch("/api/projects/existing_one/name", json={"name": "My Match"})
+    assert r.status_code == 200
+    assert r.json()["video_id"] == "My_Match_2"
+    assert (tmp_path / "My_Match_2").exists()
+
+
+def test_rename_same_sanitized_name_no_move(tmp_path, monkeypatch):
+    from app import workdir
+    monkeypatch.setattr(workdir, "WORKDIR", tmp_path)
+    _make_draft(tmp_path, "My_Match")
+    from app.main import app
+    client = TestClient(app)
+    r = client.patch("/api/projects/My_Match/name", json={"name": "My Match"})
+    assert r.status_code == 200
+    assert r.json()["video_id"] == "My_Match"   # unchanged, no _2
+    assert (tmp_path / "My_Match" / "uploads").exists()

@@ -1,12 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { Trash2, Pencil, Check, X } from "lucide-react";
-import { listDrafts, deleteDraft, renameProject } from "../api";
+import { listDrafts, deleteDraft, renameProject, openProject } from "../api";
 import type { Draft } from "../types";
 
-export function DraftsSection() {
+interface DraftsSectionProps {
+  onContinue: (videoId: string, duration: number, analyzed: boolean) => void;
+}
+
+export function DraftsSection({ onContinue }: DraftsSectionProps) {
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftName, setDraftName] = useState("");
+  const [openError, setOpenError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -22,6 +27,16 @@ export function DraftsSection() {
   async function handleDelete(videoId: string) {
     const updated = await deleteDraft(videoId);
     setDrafts(updated);
+  }
+
+  async function handleContinue(draft: Draft) {
+    setOpenError(null);
+    try {
+      const r = await openProject(draft.video_id);
+      onContinue(r.video_id, r.duration, draft.analyzed);
+    } catch (e) {
+      setOpenError(e instanceof Error ? e.message : String(e));
+    }
   }
 
   function startEdit(draft: Draft) {
@@ -41,7 +56,7 @@ export function DraftsSection() {
       const r = await renameProject(videoId, trimmed);
       setDrafts((prev) =>
         prev.map((d) =>
-          d.video_id === videoId ? { ...d, original_filename: r.original_filename } : d,
+          d.video_id === videoId ? { ...d, video_id: r.video_id, original_filename: r.original_filename } : d,
         ),
       );
     } finally {
@@ -55,6 +70,7 @@ export function DraftsSection() {
       <h2 className="font-display text-sm font-semibold tracking-wide text-[var(--muted)] uppercase">
         Unfinished drafts ({drafts.length})
       </h2>
+      {openError && <p className="text-sm text-[var(--danger)]">{openError}</p>}
       <div className="flex flex-col gap-2">
         {drafts.map((draft) => (
           <div
@@ -121,14 +137,23 @@ export function DraftsSection() {
                 </span>
               </div>
             </div>
-            <button
-              onClick={() => handleDelete(draft.video_id)}
-              aria-label={`Delete draft ${draft.original_filename}`}
-              className="shrink-0 rounded p-1.5 text-[var(--muted)] hover:text-[var(--danger)]
-                         transition-colors focus-visible:outline-2 focus-visible:outline-[var(--teal)]"
-            >
-              <Trash2 size={14} />
-            </button>
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                onClick={() => handleContinue(draft)}
+                className="rounded bg-[var(--teal)] px-3 py-1.5 text-xs text-white
+                           hover:opacity-90 transition-opacity"
+              >
+                Continue
+              </button>
+              <button
+                onClick={() => handleDelete(draft.video_id)}
+                aria-label={`Delete draft ${draft.original_filename}`}
+                className="rounded p-1.5 text-[var(--muted)] hover:text-[var(--danger)]
+                           transition-colors focus-visible:outline-2 focus-visible:outline-[var(--teal)]"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
           </div>
         ))}
       </div>

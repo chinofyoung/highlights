@@ -74,6 +74,36 @@ export default function App() {
     setLibraryView(true);
   }
 
+  async function handleContinueDraft(vId: string, dur: number, analyzed: boolean) {
+    setLibraryView(false);
+    setExportJob(null);
+    if (analyzed) {
+      try {
+        const { rallies: rs } = await api.resegment(vId, { threshold: 1 - sensitivity });
+        setRallies(rs);
+      } catch { setRallies([]); }
+      setDuration(dur);
+      setVideoId(vId);            // set last → View 4 renders with rallies already loaded
+    } else {
+      setRallies([]);
+      setDuration(dur);
+      const { job_id } = await api.startDetect(vId, { threshold: 1 - sensitivity });
+      setVideoId(vId);
+      setDetectJob(job_id);       // → detecting view
+    }
+  }
+
+  function goHome() {
+    setSelectedFile(null);
+    setVideoId(null);
+    setRallies([]);
+    setDetectJob(null);
+    setExportJob(null);
+    setAnalyzing(false);
+    setLibraryView(false);
+    setUploadError(null);
+  }
+
   async function handleSensitivity(v: number) {
     setSensitivity(v);
     if (!videoId) return;
@@ -101,35 +131,53 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--ink)]">
       <header className="flex items-center justify-between border-b border-[var(--line)] px-6 py-4 sm:px-8">
-        <h1 className="font-display text-lg font-bold tracking-tight text-[var(--ink)]">
+        <button
+          onClick={goHome}
+          className="font-display text-lg font-bold tracking-tight text-[var(--ink)]
+                     hover:opacity-80 transition-opacity"
+          aria-label="Go to home / upload"
+        >
           Pickleball<span className="text-[var(--teal)]">.</span>highlights
-        </h1>
-        <ThemeToggle />
+        </button>
+        <div className="flex items-center gap-3">
+          {(videoId || selectedFile) && (
+            <button
+              onClick={goHome}
+              className="rounded border border-[var(--line)] px-3 py-1.5 text-sm
+                         text-[var(--muted)] hover:text-[var(--ink)] transition-colors"
+            >
+              New video
+            </button>
+          )}
+          <ThemeToggle />
+        </div>
       </header>
 
-      <main className="mx-auto flex max-w-3xl flex-col gap-6 px-4 pb-16 pt-8 sm:px-8">
+      <main className="mx-auto w-full max-w-[1600px] px-4 pb-16 pt-8 sm:px-8">
         {/* View 1: no file selected, no video uploaded */}
         {!selectedFile && !videoId && (
-          <>
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
             <UploadView onFile={handleFileSelected} error={uploadError} />
-            <DraftsSection />
+            <DraftsSection onContinue={handleContinueDraft} />
             <LibrarySection onOpen={handleOpenProject} />
-          </>
+          </div>
         )}
 
         {/* View 2: file selected, not yet uploaded/detecting */}
         {selectedFile && !videoId && (
-          <SelectedVideo
-            file={selectedFile}
-            onAnalyze={handleAnalyze}
-            onReset={handleReset}
-            analyzing={analyzing}
-          />
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+            <SelectedVideo
+              file={selectedFile}
+              onAnalyze={handleAnalyze}
+              onReset={handleReset}
+              analyzing={analyzing}
+            />
+          </div>
         )}
 
         {/* View 3: detecting */}
         {(analyzing || detectJob) && (
-          <>
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
             <BallLoader />
             <ProgressBar label="Finding rallies…" fraction={detect.progress} />
             <button
@@ -146,18 +194,20 @@ export default function App() {
             >
               Cancel
             </button>
-          </>
+          </div>
         )}
         {detect.status === "error" && (
-          <p className="text-sm text-[var(--danger)]">Detection failed: {detect.error}</p>
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+            <p className="text-sm text-[var(--danger)]">Detection failed: {detect.error}</p>
+          </div>
         )}
 
         {/* View 4a: library-view — opened from Library */}
         {libraryView && videoId && (
-          <>
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
             <div className="flex items-center gap-3">
               <button
-                onClick={() => { setVideoId(null); setLibraryView(false); setRallies([]); setExportJob(null); }}
+                onClick={goHome}
                 className="rounded border border-[var(--line)] px-3 py-1.5 text-sm text-[var(--muted)] hover:text-[var(--ink)] transition-colors"
               >
                 ← Back
@@ -174,27 +224,32 @@ export default function App() {
               </button>
             </div>
             <HighlightsView videoId={videoId} />
-          </>
+          </div>
         )}
 
-        {/* View 4: review + export */}
+        {/* View 4: review + export — 2-column grid on lg+ */}
         {videoId && !libraryView && !detectJob && !analyzing && (
           <>
-            <Player ref={player} src={api.videoUrl(videoId)} />
-            <Timeline rallies={rallies} duration={duration}
-                      onChange={(i, next) => setRallies((rs) =>
-                        rs.map((r, j) => (j === i ? { ...r, ...next } : r)))}
-                      onPreview={(t) => { player.current?.seekTo(t); }} />
-            <Controls sensitivity={sensitivity} onSensitivity={handleSensitivity}
-                      onExport={handleExport} exportDisabled={includedCount === 0} />
-            <RallyList rallies={rallies}
-                       view={view}
-                       onViewChange={setView}
-                       onToggle={(i) => setRallies((rs) =>
-                         rs.map((r, j) => (j === i ? { ...r, included: !r.included } : r)))}
-                       onJump={(t) => { player.current?.seekTo(t); player.current?.play(); }}
-                       onPlay={(r) => player.current?.playSegment(r.start, r.end)} />
-
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+              <div className="flex min-w-0 flex-col gap-6">
+                <Player ref={player} src={api.videoUrl(videoId)} />
+                <Timeline rallies={rallies} duration={duration}
+                          onChange={(i, next) => setRallies((rs) =>
+                            rs.map((r, j) => (j === i ? { ...r, ...next } : r)))}
+                          onPreview={(t) => { player.current?.seekTo(t); }} />
+                <Controls sensitivity={sensitivity} onSensitivity={handleSensitivity}
+                          onExport={handleExport} exportDisabled={includedCount === 0} />
+              </div>
+              <div className="lg:sticky lg:top-6 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto self-start">
+                <RallyList rallies={rallies}
+                           view={view}
+                           onViewChange={setView}
+                           onToggle={(i) => setRallies((rs) =>
+                             rs.map((r, j) => (j === i ? { ...r, included: !r.included } : r)))}
+                           onJump={(t) => { player.current?.seekTo(t); player.current?.play(); }}
+                           onPlay={(r) => player.current?.playSegment(r.start, r.end)} />
+              </div>
+            </div>
             {exportJob && exp.status === "running" && (
               <ProgressBar label="Exporting highlights…" fraction={exp.progress} />
             )}

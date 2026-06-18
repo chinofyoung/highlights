@@ -1,0 +1,52 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - button "Go to home / upload" [ref=e5]: Pickleball.highlights
+    - button "Toggle theme" [ref=e7]:
+      - img [ref=e107]
+  - main [ref=e10]:
+    - generic [ref=e113]:
+      - generic [ref=e114]:
+        - generic [ref=e115]:
+          - heading "Find the rallies. Skip the standing around." [level=2] [ref=e116]:
+            - text: Find the rallies.
+            - text: Skip the standing around.
+          - paragraph [ref=e117]: Drop in a match recorded from one fixed angle. We'll spot every rally so you can cut a highlight reel in minutes.
+        - generic [ref=e118] [cursor=pointer]:
+          - img [ref=e119]
+          - generic [ref=e122]: Drop a match video or click to choose
+          - generic [ref=e123]: MP4, MOV, or any format your browser supports
+          - button "Drop a match video or click to choose MP4, MOV, or any format your browser supports" [ref=e124]
+      - generic [ref=e125]:
+        - heading "Unfinished drafts (1)" [level=2] [ref=e126]
+        - generic [ref=e128]:
+          - generic [ref=e129]:
+            - generic [ref=e130]:
+              - generic [ref=e131]: mini_match.mp4
+              - button "Rename mini_match.mp4" [ref=e132]:
+                - img [ref=e133]
+            - generic [ref=e136]:
+              - generic [ref=e137]: 6/18/2026, 11:07:14 AM
+              - generic [ref=e138]: 0.3 MB
+              - generic [ref=e139]: Analyzed
+          - generic [ref=e140]:
+            - button "Continue" [ref=e141]
+            - button "Delete draft mini_match.mp4" [ref=e142]:
+              - img [ref=e143]
+      - generic [ref=e146]:
+        - heading "Library (1)" [level=2] [ref=e147]
+        - generic [ref=e149]:
+          - generic [ref=e150]:
+            - generic [ref=e151]:
+              - generic [ref=e152]: "120"
+              - button "Rename 120" [ref=e153]:
+                - img [ref=e154]
+            - generic [ref=e157]:
+              - generic [ref=e158]: 6/18/2026
+              - generic [ref=e159]: ·
+              - generic [ref=e160]: 488.0 MB
+              - generic [ref=e161]: ·
+              - generic [ref=e162]: 4 clips
+          - generic [ref=e163]:
+            - button "View" [ref=e164]
+            - button "Delete project 120" [ref=e165]:
+              - img [ref=e166]

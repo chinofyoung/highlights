@@ -208,7 +208,20 @@ def rename_project(video_id: str, body: RenameBody):
     if not name:
         raise HTTPException(400, "Name cannot be empty")
     name = name[:200]
-    meta_path = dir / "uploads" / "meta.json"
+
+    new_id = workdir.unique_video_id(name, current=video_id)
+    new_dir = dir
+    if new_id != video_id:
+        new_dir = workdir.WORKDIR / new_id
+        shutil.move(str(dir), str(new_dir))
+        # re-key in-memory state so an open session follows the moved folder
+        info = state.get(video_id)
+        state._REGISTRY.pop(video_id, None)
+        if info is not None:
+            source = next((new_dir / "uploads").glob("source.*"), None)
+            state.put(new_id, {**info, "path": str(source) if source else info.get("path")})
+
+    meta_path = new_dir / "uploads" / "meta.json"
     if meta_path.exists():
         try:
             meta = json.loads(meta_path.read_text())
@@ -218,10 +231,10 @@ def rename_project(video_id: str, body: RenameBody):
         meta = {}
     meta["original_filename"] = name
     if "uploaded_at" not in meta:
-        meta["uploaded_at"] = dir.stat().st_mtime
+        meta["uploaded_at"] = new_dir.stat().st_mtime
     meta_path.parent.mkdir(parents=True, exist_ok=True)
     meta_path.write_text(json.dumps(meta))
-    return _project_meta(dir)
+    return _project_meta(new_dir)
 
 
 @router.get("/drafts")
