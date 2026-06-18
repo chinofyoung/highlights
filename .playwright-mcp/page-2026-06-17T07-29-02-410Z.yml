@@ -1,0 +1,50 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - heading "Pickleball.highlights" [level=1] [ref=e5]
+    - button "Toggle theme" [ref=e6]:
+      - img [ref=e21]
+  - main [ref=e9]:
+    - generic [ref=e37]:
+      - generic [ref=e38]:
+        - generic [ref=e39]:
+          - generic: 0:00
+        - generic [ref=e42]:
+          - generic: 0:11
+        - generic [ref=e45]:
+          - generic: 0:23
+      - generic [ref=e48]:
+        - generic [ref=e49]: 0:00
+        - generic [ref=e50]: 0:34
+    - generic [ref=e51]:
+      - generic [ref=e52]:
+        - generic [ref=e53]: Sensitivity
+        - slider "Sensitivity 50%" [ref=e54]: "0.5"
+        - generic [ref=e55]: 50%
+      - button "Export highlights" [ref=e56]:
+        - img [ref=e57]
+        - text: Export highlights
+    - list [ref=e63]:
+      - listitem [ref=e64]:
+        - checkbox [checked] [ref=e65]
+        - button "Play rally 1" [ref=e66]:
+          - img [ref=e67]
+        - button "Rally 1 0:00 – 0:08 conf 0.98" [ref=e69]:
+          - generic [ref=e70]: Rally 1
+          - generic [ref=e71]: 0:00 – 0:08
+          - generic [ref=e72]: conf 0.98
+      - listitem [ref=e73]:
+        - checkbox [checked] [ref=e74]
+        - button "Play rally 2" [ref=e75]:
+          - img [ref=e76]
+        - button "Rally 2 0:11 – 0:20 conf 0.97" [ref=e78]:
+          - generic [ref=e79]: Rally 2
+          - generic [ref=e80]: 0:11 – 0:20
+          - generic [ref=e81]: conf 0.97
+      - listitem [ref=e82]:
+        - checkbox [checked] [ref=e83]
+        - button "Play rally 3" [ref=e84]:
+          - img [ref=e85]
+        - button "Rally 3 0:23 – 0:31 conf 0.98" [ref=e87]:
+          - generic [ref=e88]: Rally 3
+          - generic [ref=e89]: 0:23 – 0:31
+          - generic [ref=e90]: conf 0.98

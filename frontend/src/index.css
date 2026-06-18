@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-display: "Archivo", system-ui, sans-serif;
+  --font-body: "Hanken Grotesk", system-ui, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, monospace;
+}
+
+:root {
+  color-scheme: light dark;
+  --bg: #F2F5F4;
+  --surface: #FFFFFF;
+  --ink: #0C1A1B;
+  --muted: #5B6B6B;
+  --line: #D7E0DE;
+  --accent: #BEF130;
+  --accent-ink: #14210A;
+  --teal: #0E8C8B;
+  --danger: #E4572E;
+}
+
+.dark {
+  --bg: #0C1517;
+  --surface: #121E20;
+  --ink: #E7EEEC;
+  --muted: #8AA0A0;
+  --line: #20302F;
+  --accent: #C7F23A;
+  --teal: #2DD4BF;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+@keyframes segment-in {
+  from { opacity: 0; transform: scaleX(0.8); }
+  to   { opacity: 1; transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes ball-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+  }
+}
+
+@keyframes ball-rally {
+  0%   { transform: translateX(0px)    translateY(0px); }
+  25%  { transform: translateX(92px)   translateY(-16px); }
+  50%  { transform: translateX(184px)  translateY(0px); }
+  75%  { transform: translateX(92px)   translateY(-16px); }
+  100% { transform: translateX(0px)    translateY(0px); }
+}
+
+@keyframes ball-rally-shadow {
+  0%, 100% { transform: translateX(0px)   scaleX(1);    opacity: 0.18; }
+  25%       { transform: translateX(92px)  scaleX(0.65); opacity: 0.08; }
+  50%       { transform: translateX(184px) scaleX(1);    opacity: 0.18; }
+  75%       { transform: translateX(92px)  scaleX(0.65); opacity: 0.08; }
+}
+
+.ball-rally {
+  animation: ball-rally 1.6s ease-in-out infinite;
+}
+
+.ball-rally-shadow {
+  border-radius: 50%;
+  background: var(--ink);
+  height: 6px;
+  width: 40px;
+  filter: blur(3px);
+  animation: ball-rally-shadow 1.6s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ball-rally {
+    animation: ball-pulse 1.2s ease-in-out infinite;
+  }
+  .ball-rally-shadow {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+.segment-animate {
+  animation: segment-in 0.25s ease-out both;
+  transform-origin: left center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .segment-animate {
+    animation: none;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,15 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - heading "Pickleball.highlights" [level=1] [ref=e5]
+    - button "Toggle theme" [ref=e6]:
+      - img [ref=e21]
+  - main [ref=e9]:
+    - generic [ref=e27]:
+      - generic [ref=e28]:
+        - heading "Ready to analyze" [level=2] [ref=e29]
+        - paragraph [ref=e30]:
+          - text: test-match.mp4
+          - generic [ref=e31]: · 0.9 MB
+      - generic [ref=e33]:
+        - button "Analyze video" [ref=e34]
+        - button "Choose a different video" [ref=e35]
