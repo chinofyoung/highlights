@@ -4,10 +4,11 @@ from fastapi.testclient import TestClient
 
 def _make_draft(tmp_path, video_id, filename="orig.mp4", uploaded_at=100.0):
     d = tmp_path / video_id
-    d.mkdir(parents=True, exist_ok=True)
-    (d / "source.mp4").write_bytes(b"x")
-    (d / "signals.npz").write_bytes(b"x")
-    (d / "meta.json").write_text(json.dumps({
+    uploads = d / "uploads"
+    uploads.mkdir(parents=True, exist_ok=True)
+    (uploads / "source.mp4").write_bytes(b"x")
+    (uploads / "signals.npz").write_bytes(b"x")
+    (uploads / "meta.json").write_text(json.dumps({
         "original_filename": filename,
         "uploaded_at": uploaded_at,
     }))
@@ -99,8 +100,9 @@ def test_rename_no_existing_meta(tmp_path, monkeypatch):
 
     # Create dir with source but NO meta.json
     d = tmp_path / "vid_nometa"
-    d.mkdir(parents=True, exist_ok=True)
-    (d / "source.mp4").write_bytes(b"x")
+    uploads = d / "uploads"
+    uploads.mkdir(parents=True, exist_ok=True)
+    (uploads / "source.mp4").write_bytes(b"x")
 
     from app.main import app
     client = TestClient(app)
@@ -109,8 +111,8 @@ def test_rename_no_existing_meta(tmp_path, monkeypatch):
     data = r.json()
     assert data["original_filename"] == "No Meta Name"
 
-    # meta.json was written
-    meta_path = d / "meta.json"
+    # meta.json was written under uploads/
+    meta_path = d / "uploads" / "meta.json"
     assert meta_path.exists()
     meta = json.loads(meta_path.read_text())
     assert meta["original_filename"] == "No Meta Name"

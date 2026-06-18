@@ -15,12 +15,13 @@ def _client(tmp_path):
 def _make_draft(tmp_path, video_id, *, analyzed=True, with_meta=True,
                 filename="my match.mp4", uploaded_at=123.0):
     d = tmp_path / video_id
-    d.mkdir(parents=True, exist_ok=True)
-    (d / "source.mp4").write_bytes(b"x")
+    uploads = d / "uploads"
+    uploads.mkdir(parents=True, exist_ok=True)
+    (uploads / "source.mp4").write_bytes(b"x")
     if analyzed:
-        (d / "signals.npz").write_bytes(b"x")
+        (uploads / "signals.npz").write_bytes(b"x")
     if with_meta:
-        (d / "meta.json").write_text(json.dumps({
+        (uploads / "meta.json").write_text(json.dumps({
             "original_filename": filename,
             "uploaded_at": uploaded_at,
         }))
@@ -29,10 +30,12 @@ def _make_draft(tmp_path, video_id, *, analyzed=True, with_meta=True,
 
 def _make_completed(tmp_path, video_id):
     d = tmp_path / video_id
-    d.mkdir(parents=True, exist_ok=True)
-    (d / "source.mp4").write_bytes(b"x")
-    (d / "output").mkdir(parents=True, exist_ok=True)
-    (d / "output" / "highlights.mp4").write_bytes(b"x")
+    uploads = d / "uploads"
+    clips = d / "clips"
+    uploads.mkdir(parents=True, exist_ok=True)
+    clips.mkdir(parents=True, exist_ok=True)
+    (uploads / "source.mp4").write_bytes(b"x")
+    (clips / "highlights.mp4").write_bytes(b"x")
     return d
 
 
@@ -163,7 +166,7 @@ def test_upload_writes_meta_and_appears_in_drafts(sample_video, tmp_path, monkey
     video_id = r.json()["video_id"]
 
     # Check meta.json was written with correct filename
-    meta_path = tmp_path / video_id / "meta.json"
+    meta_path = tmp_path / video_id / "uploads" / "meta.json"
     assert meta_path.exists()
     meta = json.loads(meta_path.read_text())
     assert meta["original_filename"] == "match_clip.mp4"

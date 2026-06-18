@@ -20,6 +20,7 @@ export default function App() {
   const [videoId, setVideoId] = useState<string | null>(null);
   const [duration, setDuration] = useState(0);
   const [rallies, setRallies] = useState<Rally[]>([]);
+  const [view, setView] = useState<("serve" | "rally")[]>(["rally"]);
   const [sensitivity, setSensitivity] = useState(0.5);
   const [detectJob, setDetectJob] = useState<string | null>(null);
   const [exportJob, setExportJob] = useState<string | null>(null);
@@ -33,7 +34,7 @@ export default function App() {
 
   // detect job completed → load rallies
   if (detect.status === "done" && detectJob && detect.result) {
-    const rs: Rally[] = detect.result.rallies.map((r: any) => ({ ...r, included: true }));
+    const rs: Rally[] = detect.result.rallies.map(api.toRally);
     setRallies(rs);
     setDetectJob(null);
   }
@@ -78,13 +79,19 @@ export default function App() {
     if (!videoId) return;
     try {
       const { rallies: rs } = await api.resegment(videoId, { threshold: 1 - v });
-      setRallies(rs.map((r) => ({ ...r, included: true })));
+      setRallies(rs);
     } catch { /* surfaced via UI elsewhere if needed */ }
   }
 
   async function handleExport() {
     if (!videoId) return;
-    const ranges = rallies.filter((r) => r.included).map((r) => ({ start: r.start, end: r.end }));
+    const ranges: { start: number; end: number }[] = [];
+    for (const r of rallies) {
+      if (!r.included) continue;
+      if (view.includes("serve")) ranges.push({ start: r.serveStart, end: r.serveEnd });
+      if (view.includes("rally")) ranges.push({ start: r.start, end: r.end });
+    }
+    ranges.sort((a, b) => a.start - b.start);
     const { job_id } = await api.startExport(videoId, ranges);
     setExportJob(job_id);
   }
@@ -158,7 +165,7 @@ export default function App() {
               <button
                 onClick={async () => {
                   const { rallies: rs } = await api.resegment(videoId, { threshold: 1 - sensitivity });
-                  setRallies(rs.map(r => ({ ...r, included: true })));
+                  setRallies(rs);
                   setLibraryView(false);
                 }}
                 className="rounded bg-[var(--teal)] px-3 py-1.5 text-sm text-white hover:opacity-90 transition-opacity"
@@ -181,6 +188,8 @@ export default function App() {
             <Controls sensitivity={sensitivity} onSensitivity={handleSensitivity}
                       onExport={handleExport} exportDisabled={includedCount === 0} />
             <RallyList rallies={rallies}
+                       view={view}
+                       onViewChange={setView}
                        onToggle={(i) => setRallies((rs) =>
                          rs.map((r, j) => (j === i ? { ...r, included: !r.included } : r)))}
                        onJump={(t) => { player.current?.seekTo(t); player.current?.play(); }}

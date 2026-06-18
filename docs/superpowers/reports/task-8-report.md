@@ -152,3 +152,57 @@ tests/test_pipeline.py::test_pipeline_caches_onsets_and_derives_serves PASSED
 .venv/bin/python -m pytest -q
 90 passed, 3 warnings in 8.67s
 ```
+
+---
+
+## Fix wave 2
+
+### Change
+
+| File | Change |
+|---|---|
+| `app/analyzer/segment.py` | Added second `spread < 1e-9` guard in `compute_threshold` after the `np.std` fallback; returns `floor + 1e-6` instead of `floor + threshold_k * ~0` so a degenerate constant signal produces no rally |
+| `tests/test_segment.py` | Added `test_adaptive_threshold_flat_signal_yields_no_rally` (constant 0.5 signal) and `test_adaptive_threshold_all_zero_yields_no_rally` (all-zero signal) |
+
+### Bug fixed
+
+`compute_threshold` returned `floor` (the median) when spread collapsed to ~0 after both MAD and `np.std`. The caller `segment()` then evaluated `signal >= floor`, which is `True` for every sample of a constant signal — producing one bogus rally spanning the entire video. The fix returns `floor + 1e-6` in that branch, guaranteeing the threshold strictly exceeds every sample.
+
+The existing bimodal-signal test (`test_compute_threshold_adaptive_scales_with_noise`) still passes: its `np.std` fallback yields spread ≈ 0.3, well above 1e-9, so the new branch does not fire.
+
+### Test command and output
+
+```
+.venv/bin/python -m pytest tests/test_segment.py -v
+```
+
+```
+tests/test_segment.py::test_normalize_constant_is_zeros PASSED
+tests/test_segment.py::test_normalize_scales_to_unit PASSED
+tests/test_segment.py::test_combine_weighted_average PASSED
+tests/test_segment.py::test_segment_finds_single_active_span PASSED
+tests/test_segment.py::test_segment_merges_short_gap PASSED
+tests/test_segment.py::test_segment_drops_short_span PASSED
+tests/test_segment.py::test_segment_applies_padding_and_clamps PASSED
+tests/test_segment.py::test_segment_empty_when_all_quiet PASSED
+tests/test_segment.py::test_combine_and_segment_handle_empty PASSED
+tests/test_segment.py::test_combine_and_gate_suppresses_single_channel PASSED
+tests/test_segment.py::test_combine_passes_when_both_active PASSED
+tests/test_segment.py::test_combine_require_both_false_is_max_like PASSED
+tests/test_segment.py::test_compute_threshold_fixed_when_disabled PASSED
+tests/test_segment.py::test_compute_threshold_adaptive_scales_with_noise PASSED
+tests/test_segment.py::test_segment_accepts_explicit_threshold PASSED
+tests/test_segment.py::test_gating_drops_low_onset_segments PASSED
+tests/test_segment.py::test_gating_disabled_when_zero PASSED
+tests/test_segment.py::test_adaptive_threshold_flat_signal_yields_no_rally PASSED
+tests/test_segment.py::test_adaptive_threshold_all_zero_yields_no_rally PASSED
+
+19 passed in 0.03s
+```
+
+### Full suite
+
+```
+.venv/bin/python -m pytest -q
+95 passed, 3 warnings in 8.04s
+```

@@ -4,7 +4,6 @@ import re
 import shutil
 import threading
 import time
-import uuid
 from pathlib import Path
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import FileResponse
@@ -60,7 +59,7 @@ def _validate_filename(filename: str) -> str:
 
 def _output_dir(video_id: str) -> Path:
     _require(video_id)          # raises 404 if unknown
-    return workdir.video_dir(video_id) / "output"
+    return workdir.video_dir(video_id) / "clips"
 
 
 @router.get("/output/{video_id}")
@@ -118,16 +117,16 @@ def delete_all_output(video_id: str):
 
 @router.post("/upload")
 async def upload(file: UploadFile = File(...)):
-    video_id = uuid.uuid4().hex[:12]
+    video_id = workdir.make_video_id(file.filename or "video")
     ext = Path(file.filename or "video.mp4").suffix or ".mp4"
-    dest = workdir.video_dir(video_id) / f"source{ext}"
+    dest = workdir.uploads_dir(video_id) / f"source{ext}"
     dest.write_bytes(await file.read())
     try:
         duration = probe_duration(str(dest))
     except ValueError:
         raise HTTPException(400, "Uploaded file is not a decodable video")
     state.put(video_id, {"path": str(dest), "duration": duration})
-    (workdir.video_dir(video_id) / "meta.json").write_text(
+    (workdir.uploads_dir(video_id) / "meta.json").write_text(
         json.dumps({"original_filename": file.filename or "video", "uploaded_at": time.time()})
     )
     return {"video_id": video_id, "duration": duration}
@@ -135,8 +134,9 @@ async def upload(file: UploadFile = File(...)):
 
 def _project_meta(d: Path) -> dict:
     """Return common metadata for a project directory."""
-    source_files = list(d.glob("source.*"))
-    meta_path = d / "meta.json"
+    uploads = d / "uploads"
+    source_files = list(uploads.glob("source.*"))
+    meta_path = uploads / "meta.json"
     if meta_path.exists():
         try:
             meta = json.loads(meta_path.read_text())
@@ -167,12 +167,13 @@ def _list_drafts() -> list[dict]:
     for d in workdir.WORKDIR.iterdir():
         if not d.is_dir():
             continue
-        source_files = list(d.glob("source.*"))
+        uploads = d / "uploads"
+        source_files = list(uploads.glob("source.*"))
         has_source = len(source_files) > 0
-        completed = (d / "output" / "highlights.mp4").exists()
+        completed = (d / "clips" / "highlights.mp4").exists()
         if not has_source or completed:
             continue
-        analyzed = (d / "signals.npz").exists()
+        analyzed = (uploads / "signals.npz").exists()
         meta = _project_meta(d)
         meta["analyzed"] = analyzed
         results.append(meta)
@@ -187,10 +188,10 @@ def _list_library() -> list[dict]:
     for d in workdir.WORKDIR.iterdir():
         if not d.is_dir():
             continue
-        if not (d / "output" / "highlights.mp4").exists():
+        if not (d / "clips" / "highlights.mp4").exists():
             continue
         meta = _project_meta(d)
-        meta["clip_count"] = len(list((d / "output").glob("clip_*.mp4")))
+        meta["clip_count"] = len(list((d / "clips").glob("clip_*.mp4")))
         results.append(meta)
     results.sort(key=lambda x: x["uploaded_at"], reverse=True)
     return results
@@ -198,7 +199,7 @@ def _list_library() -> list[dict]:
 
 @router.patch("/projects/{video_id}/name")
 def rename_project(video_id: str, body: RenameBody):
-    if not re.fullmatch(r'[A-Za-z0-9_]{1,40}', video_id):
+    if not re.fullmatch(r'[A-Za-z0-9_]{1,60}', video_id):
         raise HTTPException(400, "Invalid video_id")
     dir = workdir.WORKDIR / video_id
     if not dir.exists():
@@ -206,10 +207,8 @@ def rename_project(video_id: str, body: RenameBody):
     name = (body.name or "").strip()
     if not name:
         raise HTTPException(400, "Name cannot be empty")
-    # Truncate at 200 chars (do NOT error — just truncate)
     name = name[:200]
-    # Read or create meta
-    meta_path = dir / "meta.json"
+    meta_path = dir / "uploads" / "meta.json"
     if meta_path.exists():
         try:
             meta = json.loads(meta_path.read_text())
@@ -220,6 +219,7 @@ def rename_project(video_id: str, body: RenameBody):
     meta["original_filename"] = name
     if "uploaded_at" not in meta:
         meta["uploaded_at"] = dir.stat().st_mtime
+    meta_path.parent.mkdir(parents=True, exist_ok=True)
     meta_path.write_text(json.dumps(meta))
     return _project_meta(dir)
 
@@ -231,14 +231,14 @@ def list_drafts():
 
 @router.delete("/drafts/{video_id}")
 def delete_draft(video_id: str):
-    if not re.fullmatch(r'[A-Za-z0-9_]{1,40}', video_id):
+    if not re.fullmatch(r'[A-Za-z0-9_]{1,60}', video_id):
         raise HTTPException(400, "Invalid video_id")
     d = workdir.WORKDIR / video_id
     if not d.exists():
         raise HTTPException(404, "Draft not found")
     if d.resolve().parent != workdir.WORKDIR.resolve():
         raise HTTPException(400, "Invalid video_id")
-    if (d / "output" / "highlights.mp4").exists():
+    if (d / "clips" / "highlights.mp4").exists():
         raise HTTPException(409, "Not a draft (already exported)")
     shutil.rmtree(d)
     return _list_drafts()
@@ -251,12 +251,12 @@ def list_library():
 
 @router.post("/library/{video_id}/open")
 def open_library_project(video_id: str):
-    if not re.fullmatch(r'[A-Za-z0-9_]{1,40}', video_id):
+    if not re.fullmatch(r'[A-Za-z0-9_]{1,60}', video_id):
         raise HTTPException(400, "Invalid video_id")
     dir = workdir.WORKDIR / video_id
     if not dir.exists():
         raise HTTPException(404, "Not found")
-    source = next(dir.glob("source.*"), None)
+    source = next((dir / "uploads").glob("source.*"), None)
     if source is None:
         raise HTTPException(404, "Source not found")
     try:
@@ -269,7 +269,7 @@ def open_library_project(video_id: str):
 
 @router.delete("/library/{video_id}")
 def delete_library_project(video_id: str):
-    if not re.fullmatch(r'[A-Za-z0-9_]{1,40}', video_id):
+    if not re.fullmatch(r'[A-Za-z0-9_]{1,60}', video_id):
         raise HTTPException(400, "Invalid video_id")
     dir = workdir.WORKDIR / video_id
     if not dir.exists():
@@ -319,7 +319,7 @@ def resegment(body: DetectBody):
 @router.post("/export")
 def export(body: ExportBody):
     info = _require(body.video_id)
-    out_dir = str(workdir.video_dir(body.video_id) / "output")
+    out_dir = str(workdir.clips_dir(body.video_id))
     job_id = jobs.create()
 
     def run():

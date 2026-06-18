@@ -13,10 +13,10 @@ def test_new_defaults_present():
     assert p.audio_weight == 1.0
     assert p.motion_floor == 0.3
     assert p.audio_floor == 0.3
-    assert p.require_both is True
-    assert p.adaptive_threshold is True
+    assert p.require_both is False
+    assert p.adaptive_threshold is False
     assert p.threshold_k == 2.0
-    assert p.min_onsets_per_rally == 2
+    assert p.min_onsets_per_rally == 0
 
 
 def test_existing_defaults_unchanged():
@@ -26,3 +26,12 @@ def test_existing_defaults_unchanged():
     assert p.merge_gap_seconds == 2.0
     assert p.min_rally_seconds == 2.5
     assert p.pad_seconds == 1.0
+
+
+def test_default_detector_is_simple():
+    p = DetectionParams()
+    assert p.combine_mode == "max"
+    assert p.adaptive_threshold is False
+    assert p.require_both is False
+    assert p.min_onsets_per_rally == 0
+    assert p.threshold == 0.5

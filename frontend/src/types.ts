@@ -2,6 +2,9 @@ export interface Rally {
   start: number;
   end: number;
   confidence: number;
+  serveStart: number;
+  serveEnd: number;
+  serveResolved: boolean;
   included: boolean;
 }
 

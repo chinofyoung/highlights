@@ -27,7 +27,7 @@ def analyze(video_id: str, video_path: str, params: DetectionParams,
     motion = motion_mod.motion_energy(video_path, params.sample_fps,
                                       progress_callback=motion_cb)
 
-    wav = str(workdir.video_dir(video_id) / "audio.wav")
+    wav = str(workdir.uploads_dir(video_id) / "audio.wav")
     audio_mod.extract_wav(video_path, wav)
     audio = audio_mod.audio_energy(wav, hop_seconds=hop)
     audio = _resample(audio, len(motion))
@@ -48,4 +48,4 @@ def resegment(video_id: str, params: DetectionParams) -> list[dict]:
     thr = seg.compute_threshold(combined, params)
     rallies = seg.segment(combined, hop_seconds=hop, params=params, threshold=thr)
     rallies = seg.gate_by_onsets(rallies, onsets, params)
-    return [serve_mod.derive_serve(r, onsets, params) for r in rallies]
+    return [serve_mod.derive_serve(r, params) for r in rallies]

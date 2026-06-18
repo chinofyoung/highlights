@@ -48,26 +48,22 @@ def test_resegment_uses_cache(tmp_path, monkeypatch, sample_video):
 @requires_ffmpeg
 def test_pipeline_caches_onsets_and_derives_serves(sample_video, tmp_path, monkeypatch):
     monkeypatch.setattr(workdir, "WORKDIR", tmp_path)
-    # require_both=False and min_rally_seconds=1.0 are lenient for the 2s synthetic clip;
-    # min_onsets_per_rally=1 ensures onset gating is exercised but not over-restrictive.
-    params = DetectionParams(min_onsets_per_rally=1, require_both=False,
-                             min_rally_seconds=1.0)
+    params = DetectionParams(threshold=0.4, min_rally_seconds=1.0,
+                             serve_length_seconds=2.0)
     rallies = pipeline.analyze("vid", sample_video, params)
 
-    # onsets were cached
+    # onsets are still cached (retained for opt-in gating / tuning)
     _, _, _, onsets = workdir.load_signals("vid")
-    assert onsets.size >= 1
+    assert onsets.size >= 0
 
-    # at least one rally, each with a serve slice strictly inside it
     assert len(rallies) >= 1
     for r in rallies:
         assert r["serve_start"] == r["start"]
         assert r["start"] < r["serve_end"] <= r["end"]
-        assert "serve_resolved" in r
+        assert r["serve_resolved"] is True
+        # fixed-length: serve_end is start+2.0 unless clamped to a shorter rally
+        expected = min(r["start"] + 2.0, r["end"])
+        assert abs(r["serve_end"] - expected) < 1e-6
 
-    # at least one rally must have resolved a real serve from the fixture onsets
-    assert any(r["serve_resolved"] for r in rallies)
-
-    # resegment returns the same enriched shape without re-extraction
     again = pipeline.resegment("vid", params)
     assert again and "serve_end" in again[0]

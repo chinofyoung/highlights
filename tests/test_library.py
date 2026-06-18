@@ -10,22 +10,25 @@ from tests.conftest import requires_ffmpeg
 
 def _make_completed(tmp_path, video_id, *, filename="game.mp4", uploaded_at=200.0, clip_count=2):
     d = tmp_path / video_id
-    d.mkdir(parents=True, exist_ok=True)
-    (d / "source.mp4").write_bytes(b"fakevideo")
-    (d / "signals.npz").write_bytes(b"x")
-    (d / "meta.json").write_text(json.dumps({"original_filename": filename, "uploaded_at": uploaded_at}))
-    (d / "output").mkdir(parents=True, exist_ok=True)
-    (d / "output" / "highlights.mp4").write_bytes(b"x")
+    uploads = d / "uploads"
+    clips = d / "clips"
+    uploads.mkdir(parents=True, exist_ok=True)
+    clips.mkdir(parents=True, exist_ok=True)
+    (uploads / "source.mp4").write_bytes(b"fakevideo")
+    (uploads / "signals.npz").write_bytes(b"x")
+    (uploads / "meta.json").write_text(json.dumps({"original_filename": filename, "uploaded_at": uploaded_at}))
+    (clips / "highlights.mp4").write_bytes(b"x")
     for i in range(1, clip_count + 1):
-        (d / "output" / f"clip_{i:03d}.mp4").write_bytes(b"x")
+        (clips / f"clip_{i:03d}.mp4").write_bytes(b"x")
     return d
 
 
 def _make_draft(tmp_path, video_id):
     d = tmp_path / video_id
-    d.mkdir(parents=True, exist_ok=True)
-    (d / "source.mp4").write_bytes(b"fakevideo")
-    (d / "signals.npz").write_bytes(b"x")
+    uploads = d / "uploads"
+    uploads.mkdir(parents=True, exist_ok=True)
+    (uploads / "source.mp4").write_bytes(b"fakevideo")
+    (uploads / "signals.npz").write_bytes(b"x")
     return d
 
 

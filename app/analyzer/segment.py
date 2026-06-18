@@ -16,6 +16,8 @@ def combine(motion: np.ndarray, audio: np.ndarray,
             params: DetectionParams) -> np.ndarray:
     m = normalize(motion)
     a = normalize(audio)
+    if getattr(params, "combine_mode", "max") == "max":
+        return np.maximum(m, a)
     denom = params.motion_weight + params.audio_weight
     env = params.motion_weight * m + params.audio_weight * a
     if denom > 0:
@@ -44,6 +46,11 @@ def compute_threshold(signal: np.ndarray, params: DetectionParams) -> float:
     spread = float(np.median(np.abs(s - floor))) * 1.4826  # robust std (MAD)
     if spread < 1e-9:
         spread = float(np.std(s))  # fallback when MAD collapses (bimodal / step signal)
+    if spread < 1e-9:
+        # Signal is genuinely constant — no contrast to threshold against.
+        # Return strictly above the floor so signal >= threshold is all False
+        # and no bogus rally is produced.
+        return floor + 1e-6
     return float(floor + params.threshold_k * spread)
 
 

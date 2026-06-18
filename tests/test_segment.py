@@ -15,7 +15,7 @@ def test_normalize_scales_to_unit():
 def test_combine_weighted_average():
     # With equal weights and require_both=False, output is the weighted average.
     m = np.array([0.0, 1.0]); a = np.array([1.0, 0.0])
-    p = DetectionParams(require_both=False, motion_weight=1.0, audio_weight=1.0)
+    p = DetectionParams(combine_mode="weighted", require_both=False, motion_weight=1.0, audio_weight=1.0)
     assert np.allclose(S.combine(m, a, p), [0.5, 0.5])
 
 
@@ -74,7 +74,7 @@ def test_combine_and_gate_suppresses_single_channel():
     # motion active, audio silent -> gated to ~0 when require_both
     motion = np.array([0.0, 1.0, 0.0])
     audio = np.array([0.0, 0.0, 0.0])
-    p = DetectionParams(require_both=True, motion_floor=0.3, audio_floor=0.3)
+    p = DetectionParams(combine_mode="weighted", require_both=True, motion_floor=0.3, audio_floor=0.3)
     out = combine(motion, audio, p)
     assert np.all(out == 0.0)
 
@@ -82,7 +82,7 @@ def test_combine_and_gate_suppresses_single_channel():
 def test_combine_passes_when_both_active():
     motion = np.array([0.0, 1.0, 0.0])
     audio = np.array([0.0, 1.0, 0.0])
-    p = DetectionParams(require_both=True)
+    p = DetectionParams(combine_mode="weighted", require_both=True)
     out = combine(motion, audio, p)
     assert out[1] > out[0]
     assert out[1] > out[2]
@@ -91,7 +91,7 @@ def test_combine_passes_when_both_active():
 def test_combine_require_both_false_is_max_like():
     motion = np.array([0.0, 1.0, 0.0])
     audio = np.array([0.0, 0.0, 0.0])
-    p = DetectionParams(require_both=False, motion_weight=1.0, audio_weight=0.0)
+    p = DetectionParams(combine_mode="weighted", require_both=False, motion_weight=1.0, audio_weight=0.0)
     out = combine(motion, audio, p)
     assert out[1] > 0.0
 
@@ -137,3 +137,38 @@ def test_gating_disabled_when_zero():
     segs = [{"start": 0.0, "end": 5.0, "confidence": 0.9}]
     p = DetectionParams(min_onsets_per_rally=0)
     assert gate_by_onsets(segs, np.zeros(0), p) == segs
+
+
+def test_adaptive_threshold_flat_signal_yields_no_rally():
+    sig = np.full(100, 0.5)
+    p = DetectionParams(adaptive_threshold=True, min_rally_seconds=0.0, pad_seconds=0.0, merge_gap_seconds=0.0)
+    thr = compute_threshold(sig, p)
+    assert thr > 0.5
+    assert segment(sig, 0.1, p, threshold=thr) == []
+
+
+def test_adaptive_threshold_all_zero_yields_no_rally():
+    sig = np.zeros(100)
+    p = DetectionParams(min_rally_seconds=0.0, pad_seconds=0.0, merge_gap_seconds=0.0)
+    thr = compute_threshold(sig, p)
+    assert segment(sig, 0.1, p, threshold=thr) == []
+
+
+def test_combine_max_mode_is_default():
+    motion = np.array([0.0, 1.0, 0.0])
+    audio = np.array([0.0, 0.0, 0.0])
+    p = DetectionParams()  # combine_mode="max" by default
+    out = combine(motion, audio, p)
+    # max-combine: motion spike survives even with silent audio
+    assert out[1] == 1.0
+    assert out[0] == 0.0
+
+
+def test_combine_weighted_mode_still_available():
+    motion = np.array([0.0, 1.0, 0.0])
+    audio = np.array([0.0, 0.0, 0.0])
+    p = DetectionParams(combine_mode="weighted", require_both=True,
+                        motion_floor=0.3, audio_floor=0.3)
+    out = combine(motion, audio, p)
+    # AND-gate zeroes the motion-only spike
+    assert np.all(out == 0.0)

@@ -1,5 +1,17 @@
 import type { JobRecord, Rally, DetectParams, Draft, Project } from "./types";
 
+export function toRally(r: any): Rally {
+  return {
+    start: r.start,
+    end: r.end,
+    confidence: r.confidence,
+    serveStart: r.serve_start ?? r.serveStart ?? r.start,
+    serveEnd: r.serve_end ?? r.serveEnd ?? r.end,
+    serveResolved: r.serve_resolved ?? r.serveResolved ?? false,
+    included: true,
+  };
+}
+
 async function postJSON<T>(url: string, body: unknown): Promise<T> {
   const r = await fetch(url, {
     method: "POST",
@@ -45,8 +57,9 @@ export async function cancelJob(jobId: string): Promise<void> {
   await postJSON<unknown>(`/api/jobs/${jobId}/cancel`, {});
 }
 
-export function resegment(videoId: string, params: DetectParams) {
-  return postJSON<{ rallies: Rally[] }>("/api/resegment", { video_id: videoId, params });
+export async function resegment(videoId: string, params: DetectParams): Promise<{ rallies: Rally[] }> {
+  const data = await postJSON<{ rallies: any[] }>("/api/resegment", { video_id: videoId, params });
+  return { rallies: data.rallies.map(toRally) };
 }
 
 export function videoUrl(videoId: string): string {
