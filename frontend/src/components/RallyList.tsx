@@ -53,14 +53,8 @@ export function RallyList({ rallies, view, onViewChange, onToggle, onJump, onPla
   onJump: (t: number) => void;
   onPlay: (rally: Rally) => void;
 }) {
-  function toggleChip(mode: ViewMode) {
-    if (view.includes(mode)) {
-      // keep at least one chip active
-      if (view.length === 1) return;
-      onViewChange(view.filter((v) => v !== mode));
-    } else {
-      onViewChange([...view, mode]);
-    }
+  function selectMode(mode: ViewMode) {
+    onViewChange([mode]);
   }
 
   const chips: { label: string; mode: ViewMode }[] = [
@@ -72,20 +66,20 @@ export function RallyList({ rallies, view, onViewChange, onToggle, onJump, onPla
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Chip filter row */}
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-[var(--muted)] font-medium">Show:</span>
+      {/* View tabs (single-select) */}
+      <div className="inline-flex w-fit rounded-full border border-[var(--line)] bg-[var(--surface)] p-0.5">
         {chips.map(({ label, mode }) => {
           const active = view.includes(mode);
           return (
             <button
               key={mode}
-              onClick={() => toggleChip(mode)}
+              onClick={() => selectMode(mode)}
+              aria-pressed={active}
               className={[
-                "rounded-full px-3 py-1 text-xs font-medium border transition-colors",
+                "rounded-full px-4 py-1 text-xs font-medium transition-colors",
                 active
-                  ? "bg-[var(--teal)] border-[var(--teal)] text-white"
-                  : "bg-transparent border-[var(--line)] text-[var(--muted)] hover:border-[var(--teal)] hover:text-[var(--teal)]",
+                  ? "bg-[var(--teal)] text-white"
+                  : "bg-transparent text-[var(--muted)] hover:text-[var(--ink)]",
               ].join(" ")}
             >
               {label}

@@ -65,20 +65,39 @@ export function Timeline({ rallies, duration, onChange, onPreview }: {
         {/* Center line — evoking the pickleball court NVZ divider */}
         <div className="pointer-events-none absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-[var(--line)]" />
 
+        {/* Minute tick lines — behind segments */}
+        {duration > 0 && (() => {
+          const ticks: number[] = [];
+          for (let t = 60; t < duration; t += 60) ticks.push(t);
+          return ticks.map((t) => (
+            <div
+              key={t}
+              aria-hidden
+              className="pointer-events-none absolute top-0 h-full w-px bg-[var(--line)]"
+              style={{ left: `${(100 * t) / duration}%` }}
+            />
+          ));
+        })()}
+
         {rallies.map((r, i) => {
           const left = (100 * r.start) / duration;
           const width = (100 * (r.end - r.start)) / duration;
-          const widthPct = r.end - r.start;
-          const showLabel = duration > 0 && (widthPct / duration) > 0.06;
+          const widthPct = duration > 0 ? (100 * (r.end - r.start)) / duration : 0;
+          const dur = r.end - r.start;
+          const fullLabel = `R${i + 1} ${fmtTime(dur)}`;
+          const shortLabel = `R${i + 1}`;
+          const labelText = widthPct > 9 ? fullLabel : widthPct > 3.5 ? shortLabel : null;
+          const tooltipText = `Rally ${i + 1} · ${fmtTime(r.start)}–${fmtTime(r.end)} · ${Math.round(dur)}s`;
           return (
             <div
               key={i}
+              title={tooltipText}
               className={`segment-animate absolute top-0 h-full cursor-grab active:cursor-grabbing ${
                 r.included
                   ? "bg-[var(--accent)]"
                   : "bg-[var(--muted)]/30"
               }`}
-              style={{ left: `${left}%`, width: `${width}%` }}
+              style={{ left: `${left}%`, width: `${width}%`, minWidth: "6px" }}
               onPointerDown={(e) => onPointerDown(e, i, "body")}
               onClick={() => onPreview(r.start)}
             >
@@ -90,10 +109,12 @@ export function Timeline({ rallies, duration, onChange, onPreview }: {
                 onLostPointerCapture={endDrag}
                 className="absolute left-0 top-0 h-full w-2 cursor-ew-resize bg-[var(--accent-ink)]/20 hover:bg-[var(--accent-ink)]/40 transition-colors"
               />
-              {/* Optional timecode label on wider segments */}
-              {showLabel && (
-                <span className="pointer-events-none absolute inset-0 flex items-center justify-center font-mono text-[10px] font-bold text-[var(--accent-ink)] select-none">
-                  {fmtTime(r.start)}
+              {/* Rally number + duration label on wider segments */}
+              {labelText && (
+                <span className={`pointer-events-none absolute inset-0 flex items-center justify-center font-mono text-[10px] font-bold select-none ${
+                  r.included ? "text-[var(--accent-ink)]" : "text-[var(--ink)]"
+                }`}>
+                  {labelText}
                 </span>
               )}
               {/* End handle */}
@@ -108,13 +129,26 @@ export function Timeline({ rallies, duration, onChange, onPreview }: {
           );
         })}
       </div>
-      {/* Duration label */}
-      {duration > 0 && (
-        <div className="flex justify-between font-mono text-[10px] text-[var(--muted)] px-0.5">
-          <span>{fmtTime(0)}</span>
-          <span>{fmtTime(duration)}</span>
-        </div>
-      )}
+      {/* Axis labels: 0:00, minute ticks, total */}
+      {duration > 0 && (() => {
+        const ticks: number[] = [];
+        for (let t = 60; t < duration; t += 60) ticks.push(t);
+        return (
+          <div className="relative h-4 w-full font-mono text-[10px] text-[var(--muted)] px-0.5">
+            <span className="absolute left-0">{fmtTime(0)}</span>
+            {ticks.map((t) => (
+              <span
+                key={t}
+                className="absolute"
+                style={{ left: `${(100 * t) / duration}%`, transform: "translateX(-50%)" }}
+              >
+                {fmtTime(t)}
+              </span>
+            ))}
+            <span className="absolute right-0">{fmtTime(duration)}</span>
+          </div>
+        );
+      })()}
     </div>
   );
 }

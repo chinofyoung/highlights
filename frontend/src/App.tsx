@@ -137,7 +137,7 @@ export default function App() {
                      hover:opacity-80 transition-opacity"
           aria-label="Go to home / upload"
         >
-          Cherry<span className="text-[var(--teal)]">.</span>Pickle
+          Cherry<span className="text-[var(--teal)]">.Pickle</span>
         </button>
         <div className="flex items-center gap-3">
           {(videoId || selectedFile) && (
