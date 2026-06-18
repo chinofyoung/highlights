@@ -1,1 +1,50 @@
 [     179ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8011/favicon.ico:0
+[ 7336224ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8011/api/library/mini_match_2066b2/open:0
+[ 7338944ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8011/api/drafts/mini_match_2066b2:0
+[ 7338955ms] TypeError: Failed to fetch
+    at yd (http://127.0.0.1:8011/assets/index-Dz8odPow.js:40:60107)
+    at j (http://127.0.0.1:8011/assets/index-Dz8odPow.js:127:473)
+    at onClick (http://127.0.0.1:8011/assets/index-Dz8odPow.js:131:115)
+    at Object.nc (http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:9842)
+    at lc (http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:9996)
+    at ic (http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:10053)
+    at Qu (http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:31420)
+    at Ku (http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:31837)
+    at http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:36768
+    at vo (http://127.0.0.1:8011/assets/index-Dz8odPow.js:40:37116)
+[ 7340161ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8011/api/drafts/mini_match_2066b2:0
+[ 7340162ms] TypeError: Failed to fetch
+    at yd (http://127.0.0.1:8011/assets/index-Dz8odPow.js:40:60107)
+    at j (http://127.0.0.1:8011/assets/index-Dz8odPow.js:127:473)
+    at onClick (http://127.0.0.1:8011/assets/index-Dz8odPow.js:131:115)
+    at Object.nc (http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:9842)
+    at lc (http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:9996)
+    at ic (http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:10053)
+    at Qu (http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:31420)
+    at Ku (http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:31837)
+    at http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:36768
+    at vo (http://127.0.0.1:8011/assets/index-Dz8odPow.js:40:37116)
+[ 7340760ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8011/api/drafts/mini_match_2066b2:0
+[ 7340761ms] TypeError: Failed to fetch
+    at yd (http://127.0.0.1:8011/assets/index-Dz8odPow.js:40:60107)
+    at j (http://127.0.0.1:8011/assets/index-Dz8odPow.js:127:473)
+    at onClick (http://127.0.0.1:8011/assets/index-Dz8odPow.js:131:115)
+    at Object.nc (http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:9842)
+    at lc (http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:9996)
+    at ic (http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:10053)
+    at Qu (http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:31420)
+    at Ku (http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:31837)
+    at http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:36768
+    at vo (http://127.0.0.1:8011/assets/index-Dz8odPow.js:40:37116)
+[ 7340943ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8011/api/drafts/mini_match_2066b2:0
+[ 7340945ms] TypeError: Failed to fetch
+    at yd (http://127.0.0.1:8011/assets/index-Dz8odPow.js:40:60107)
+    at j (http://127.0.0.1:8011/assets/index-Dz8odPow.js:127:473)
+    at onClick (http://127.0.0.1:8011/assets/index-Dz8odPow.js:131:115)
+    at Object.nc (http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:9842)
+    at lc (http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:9996)
+    at ic (http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:10053)
+    at Qu (http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:31420)
+    at Ku (http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:31837)
+    at http://127.0.0.1:8011/assets/index-Dz8odPow.js:37:36768
+    at vo (http://127.0.0.1:8011/assets/index-Dz8odPow.js:40:37116)

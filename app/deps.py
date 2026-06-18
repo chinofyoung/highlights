@@ -1,9 +1,22 @@
 import json
+import os
 import shutil
 import subprocess
+from app.paths import resource_dir
+
+
+def ensure_ffmpeg_on_path() -> None:
+    """If bundled ffmpeg/ffprobe exist (packaged app), prepend their dir to PATH.
+    No-op in dev, where they aren't present and shutil.which finds system ffmpeg."""
+    bin_dir = resource_dir() / "bin"
+    if (bin_dir / "ffmpeg").exists() and (bin_dir / "ffprobe").exists():
+        parts = os.environ.get("PATH", "").split(os.pathsep)
+        if str(bin_dir) not in parts:
+            os.environ["PATH"] = str(bin_dir) + os.pathsep + os.environ.get("PATH", "")
 
 
 def ffmpeg_available() -> bool:
+    ensure_ffmpeg_on_path()
     return shutil.which("ffmpeg") is not None and shutil.which("ffprobe") is not None
 
 

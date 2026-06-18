@@ -1,4 +1,4 @@
-# Pickleball Highlights
+# Cherry.Pickle
 
 Local tool that detects rallies in fixed-camera pickleball videos, lets you
 review/trim them in the browser, and exports per-rally clips plus one stitched

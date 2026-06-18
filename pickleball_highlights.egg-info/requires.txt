@@ -4,6 +4,10 @@ python-multipart>=0.0.9
 opencv-python-headless>=4.9
 numpy>=1.26
 
+[desktop]
+pywebview>=5
+pyinstaller>=6
+
 [dev]
 pytest>=8.0
 httpx>=0.27
